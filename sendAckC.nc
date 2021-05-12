@@ -30,8 +30,9 @@ module sendAckC {
 
 } implementation {
 
-  uint8_t counter=0;
+  uint8_t counter = 0;
   uint8_t rec_id;
+  uint8_t ACK_received = 0;
   message_t packet;
 
   void sendReq();
@@ -40,7 +41,19 @@ module sendAckC {
   
   //***************** Send request function ********************//
   void sendReq() {
-	/* This function is called when we want to send a request
+  	my_msg_t* mess = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
+    if (mess == NULL){
+   		return;
+    }
+    	
+    mess->msg_type = 1;
+    mess->msg_counter = counter;
+    mess->value = //fai la read dal fake sensor;
+    
+    if (call AMSend.send(0, &packet, sizeof(my_msg_t)) == SUCCESS){
+    	dbg("Radio","Message sent!\n");
+    }
+  	/* This function is called when we want to send a request
 	 *
 	 * STEPS:
 	 * 1. Prepare the msg
@@ -63,17 +76,24 @@ module sendAckC {
 
   //***************** Boot interface ********************//
   event void Boot.booted() {
-	dbg("boot","Application booted.\n");
-	/* Fill it ... */
+	dbg("boot","Application booted %u. \n", TOS_NODE_ID);
+    call SplitControl.start();
   }
 
   //***************** SplitControl interface ********************//
   event void SplitControl.startDone(error_t err){
-    /* Fill it ... */
+		if (err == SUCCESS){
+			dbg("radio", "Radio ON!");
+			if (TOS_NODE_ID == 1){
+				call Timer.startPeriodic(1000);
+			}
+		} else {
+			dbgerror("radio", "Radio error, trying to turning on again...\n");
+		}
   }
   
   event void SplitControl.stopDone(error_t err){
-    /* Fill it ... */
+	//NOthing to implement!
   }
 
   //***************** MilliTimer interface ********************//
