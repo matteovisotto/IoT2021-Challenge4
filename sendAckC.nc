@@ -13,7 +13,12 @@ module sendAckC {
 
   uses {
   /****** INTERFACES *****/
-	interface Boot; 
+	interface Boot;
+	interface AMSend;
+	interface Receive;
+	interface Timer<TMilli as MilliTimer>;
+	interface SplitControl as AMControl;
+	interface Packet;
 	
     //interfaces for communication
 	//interface for timer
