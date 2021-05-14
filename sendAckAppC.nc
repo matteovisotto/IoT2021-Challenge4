@@ -14,10 +14,11 @@ implementation {
 
 /****** COMPONENTS *****/
   components MainC, sendAckC as App;
-  components new AMSenderC(AM_RADIO_COUNT_MSG);
-  components new AMReceiverC(AM_RADIO_COUNT_MS);
+  components new AMSenderC(AM_SEND_MSG);
+  components new AMReceiverC(AM_SEND_MSG);
   components new TimerMilliC();
   components ActiveMessageC;
+  components new FakeSensorC();
   //add the other components here
 
 /****** INTERFACES *****/
