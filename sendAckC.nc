@@ -20,11 +20,11 @@ module sendAckC {
 	interface SplitControl as AMControl;
 	interface PacketAcknowledgements;
 	interface Packet;
-	
+
     //interfaces for communication
 	//interface for timer
     //other interfaces, if needed
-	
+
 	//interface used to perform sensor reading (to get the value from a sensor)
 	interface Read<uint16_t>;
   }
@@ -39,10 +39,47 @@ module sendAckC {
 
   void sendReq();
   void sendResp();
-  
-  
+
+
   //***************** Send request function ********************//
-  
+  void sendReq() {
+    	my_msg_t* msg = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
+      if (msg == NULL) {
+     		return;
+      }
+
+      msg->msg_type = 1;
+      msg->msg_counter = counter;
+      msg->value = 0;
+
+      call PacketAcknowledgements.requestAck(&packet);
+
+      if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS){
+      	dbg("radio","Message sent! -> ");
+      	dbg_clear("radio", "at time %s\n", sim_time_string());
+      	locked = TRUE;
+      }
+
+    	/* This function is called when we want to send a request
+  	 *
+  	 * STEPS:
+  	 * 1. Prepare the msg
+  	 * 2. Set the ACK flag for the message using the PacketAcknowledgements interface
+  	 *     (read the docs)
+  	 * 3. Send an UNICAST message to the correct node
+  	 * X. Use debug statements showing what's happening (i.e. message fields)
+  	 */
+   }
+
+    //****************** Task send response *****************//
+    void sendResp() {
+    	/* This function is called when we receive the REQ message.
+    	 * Nothing to do here.
+    	 * `call Read.read()` reads from the fake sensor.
+    	 * When the reading is done it raise the event read one.
+    	 */
+  	call Read.read();
+    }
 
   //***************** Boot interface ********************//
   event void Boot.booted() {
@@ -64,7 +101,7 @@ module sendAckC {
 		dbgerror("radio", "Radio error, trying to turning on again...\n");
 	}
   }
-  
+
   event void AMControl.stopDone(error_t err){
 	//NOthing to implement!
   }
@@ -82,7 +119,7 @@ module sendAckC {
 	 * Fill this part...
 	 */
   }
-  
+
 
   //********************* AMSend interface ****************//
   event void AMSend.sendDone(message_t* buf,error_t err) {
@@ -94,7 +131,7 @@ module sendAckC {
     	dbg("radio","ACK correctly received!\n");
     	call MilliTimer.stop();
     }
-	/* This event is triggered when a message is sent 
+	/* This event is triggered when a message is sent
 	 *
 	 * STEPS:
 	 * 1. Check if the packet is sent
@@ -113,11 +150,11 @@ module sendAckC {
 	if (len != sizeof(my_msg_t)) {return buf;}
     else {
       my_msg_t* rcm = (my_msg_t*)payload;
-      
+
       dbg("radio_rec", "Received packet at time %s\n", sim_time_string());
       dbg("radio_pack","Pack \n \t Payload length -> %hhu \n \t Counter -> %u \n \t Type -> %u\n", call Packet.payloadLength(buf), rcm->msg_counter, rcm->msg_type);
-      
-      
+
+
       if (rcm->msg_type == 1){
       	dbg("app","Preparing response...\n");
       	counter = rcm->msg_counter;
@@ -125,23 +162,23 @@ module sendAckC {
       } else {
       	dbg_clear("radio_pack", "\t Value -> %hhu \n", rcm->value);
       }
-	
+
 	}
   }
-  
+
   //************************* Read interface **********************//
   event void Read.readDone(error_t result, uint16_t data) {
 	my_msg_t* mess = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
     if (mess == NULL){
    		return;
     }
-    
+
     mess->msg_type = 2;
     mess->msg_counter = counter;
     mess->value = data;
-    
+
     call PacketAcknowledgements.requestAck(&packet);
-    
+
     if (call AMSend.send(1, &packet, sizeof(my_msg_t)) == SUCCESS){
     	dbg("radio","Message sent!\n");
     	dbg("radio_pack","Pack\n \t Payload length -> %hhu \n", call Packet.payloadLength(&packet));
@@ -149,7 +186,7 @@ module sendAckC {
     	dbg_clear("radio_pack","\t Type -> %hhu \n", mess->msg_type);
     	dbg_clear("radio_pack","\t Value -> %hhu \n", mess->value);
     }
-	/* This event is triggered when the fake sensor finish to read (after a Read.read()) 
+	/* This event is triggered when the fake sensor finish to read (after a Read.read())
 	 *
 	 * STEPS:
 	 * 1. Prepare the response (RESP)
@@ -158,43 +195,4 @@ module sendAckC {
 	 */
 }
 
-void sendReq() {
-  	my_msg_t* msg = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
-    if (msg == NULL) {
-   		return;
-    }
-    
-    msg->msg_type = 1;
-    msg->msg_counter = counter;
-    msg->value = 0;
-
-    call PacketAcknowledgements.requestAck(&packet);
-    
-    if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS){
-    	dbg("radio","Message sent! -> ");
-    	dbg_clear("radio", "at time %s\n", sim_time_string());
-    	locked = TRUE;
-    }
-
-  	/* This function is called when we want to send a request
-	 *
-	 * STEPS:
-	 * 1. Prepare the msg
-	 * 2. Set the ACK flag for the message using the PacketAcknowledgements interface
-	 *     (read the docs)
-	 * 3. Send an UNICAST message to the correct node
-	 * X. Use debug statements showing what's happening (i.e. message fields)
-	 */
- }        
-
-  //****************** Task send response *****************//
-  void sendResp() {
-  	/* This function is called when we receive the REQ message.
-  	 * Nothing to do here. 
-  	 * `call Read.read()` reads from the fake sensor.
-  	 * When the reading is done it raise the event read one.
-  	 */
-	call Read.read();
-  }
 }
-
