@@ -53,9 +53,12 @@ module sendAckC {
   //***************** SplitControl interface ********************//
   event void AMControl.startDone(error_t err){
 	if (err == SUCCESS){
-		dbg("radio", "Radio ON!");
+		dbg("radio", "Radio ON!\n");
 		if (TOS_NODE_ID == 1){
+			dbg("app", "Node %u timer OK", TOS_NODE_ID);
 			call MilliTimer.startPeriodic(1000);
+		} else {
+			dbg("app", "Node %u has been started", TOS_NODE_ID);
 		}
 	} else {
 		dbgerror("radio", "Radio error, trying to turning on again...\n");
@@ -71,7 +74,7 @@ module sendAckC {
 	if (locked) {
       return;
     } else {
-    	counter++;
+      counter++;
       sendReq();
     }
 	/* This event is triggered every time the timer fires.
@@ -120,9 +123,9 @@ module sendAckC {
       	sendResp();
       } else {
       	dbg_clear("radio_pack","\t\t Payload \n" );
-      dbg_clear("radio_pack", "\t\t msg_type: %hhu \n", rcm->msg_type);
-      dbg_clear("radio_pack", "\t\t msg_counter: %hhu \n", rcm->msg_counter);
-      dbg_clear("radio_pack", "\t\t value: %hhu \n", rcm->value);
+      	dbg_clear("radio_pack", "\t\t msg_type: %hhu \n", rcm->msg_type);
+      	dbg_clear("radio_pack", "\t\t msg_counter: %hhu \n", rcm->msg_counter);
+      	dbg_clear("radio_pack", "\t\t value: %hhu \n", rcm->value);
       }
 	
 	}
@@ -141,9 +144,9 @@ module sendAckC {
     
     call PacketAcknowledgements.requestAck(&packet);
     
-    if (call AMSend.send(0, &packet, sizeof(my_msg_t)) == SUCCESS){
+    if (call AMSend.send(1, &packet, sizeof(my_msg_t)) == SUCCESS){
     	dbg("Radio","Message sent!\n");
-    	dbg("radio_pack",">>>Pack\n \t Payloaf length %hhu \n", call Packet.payloadLength(&packet));
+    	dbg("radio_pack","Pack\n \t Payload length %hhu \n", call Packet.payloadLength(&packet));
     	dbg_clear("radio_pack","\t\t type: %hhu \n", mess->msg_type);
     	dbg_clear("radio_pack","\t\t counter: %hhu \n", mess->msg_counter);
     	dbg_clear("radio_pack","\t\t value: %hhu \n", mess->value);
@@ -177,7 +180,7 @@ void sendReq() {
 
     
 
-    if (call AMSend.send(0, &packet, sizeof(my_msg_t)) == SUCCESS){
+    if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS){
 
     	dbg("Radio","Message sent!\n");
 
