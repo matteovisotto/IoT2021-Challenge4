@@ -55,10 +55,10 @@ module sendAckC {
 	if (err == SUCCESS){
 		dbg("radio", "Radio ON!\n");
 		if (TOS_NODE_ID == 1){
-			dbg("app", "Node %u timer OK", TOS_NODE_ID);
+			dbg("app", "Node %u timer OK\n", TOS_NODE_ID);
 			call MilliTimer.startPeriodic(1000);
 		} else {
-			dbg("app", "Node %u has been started", TOS_NODE_ID);
+			dbg("app", "Node %u has been started\n", TOS_NODE_ID);
 		}
 	} else {
 		dbgerror("radio", "Radio error, trying to turning on again...\n");
@@ -91,6 +91,7 @@ module sendAckC {
    		return;
     }
     if(err == SUCCESS && call PacketAcknowledgements.wasAcked(buf)){
+    	dbg("radio","ACK correctly received!\n");
     	call MilliTimer.stop();
     }
 	/* This event is triggered when a message is sent 
@@ -104,8 +105,6 @@ module sendAckC {
 	 */
 	 if (&packet == buf) {
       locked = FALSE;
-      dbg("radio_send", "Packet sent...");
-      dbg_clear("radio_send", " at time %s \n", sim_time_string());
     }
   }
 
@@ -116,16 +115,15 @@ module sendAckC {
       my_msg_t* rcm = (my_msg_t*)payload;
       
       dbg("radio_rec", "Received packet at time %s\n", sim_time_string());
-      dbg("radio_pack","Pack \n \t Payload length %hhu \n", call Packet.payloadLength(buf));
+      dbg("radio_pack","Pack \n \t Payload length -> %hhu \n \t Counter -> %u \n \t Type -> %u\n", call Packet.payloadLength(buf), rcm->msg_counter, rcm->msg_type);
       
       
       if (rcm->msg_type == 1){
+      	dbg("app","Preparing response...\n");
+      	counter = rcm->msg_counter;
       	sendResp();
       } else {
-      	dbg_clear("radio_pack","\t\t Payload \n" );
-      	dbg_clear("radio_pack", "\t\t msg_type: %hhu \n", rcm->msg_type);
-      	dbg_clear("radio_pack", "\t\t msg_counter: %hhu \n", rcm->msg_counter);
-      	dbg_clear("radio_pack", "\t\t value: %hhu \n", rcm->value);
+      	dbg_clear("radio_pack", "\t Value -> %hhu \n", rcm->value);
       }
 	
 	}
@@ -145,11 +143,11 @@ module sendAckC {
     call PacketAcknowledgements.requestAck(&packet);
     
     if (call AMSend.send(1, &packet, sizeof(my_msg_t)) == SUCCESS){
-    	dbg("Radio","Message sent!\n");
-    	dbg("radio_pack","Pack\n \t Payload length %hhu \n", call Packet.payloadLength(&packet));
-    	dbg_clear("radio_pack","\t\t type: %hhu \n", mess->msg_type);
-    	dbg_clear("radio_pack","\t\t counter: %hhu \n", mess->msg_counter);
-    	dbg_clear("radio_pack","\t\t value: %hhu \n", mess->value);
+    	dbg("radio","Message sent!\n");
+    	dbg("radio_pack","Pack\n \t Payload length -> %hhu \n", call Packet.payloadLength(&packet));
+    	dbg_clear("radio_pack","\t Counter -> %hhu \n", mess->msg_counter);
+    	dbg_clear("radio_pack","\t Type -> %hhu \n", mess->msg_type);
+    	dbg_clear("radio_pack","\t Value -> %hhu \n", mess->value);
     }
 	/* This event is triggered when the fake sensor finish to read (after a Read.read()) 
 	 *
@@ -165,27 +163,17 @@ void sendReq() {
     if (msg == NULL) {
    		return;
     }
-
-    	
-
+    
     msg->msg_type = 1;
-
     msg->msg_counter = counter;
-
     msg->value = 0;
 
-    
-
     call PacketAcknowledgements.requestAck(&packet);
-
     
-
     if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS){
-
-    	dbg("Radio","Message sent!\n");
-
+    	dbg("radio","Message sent! -> ");
+    	dbg_clear("radio", "at time %s\n", sim_time_string());
     	locked = TRUE;
-
     }
 
   	/* This function is called when we want to send a request
