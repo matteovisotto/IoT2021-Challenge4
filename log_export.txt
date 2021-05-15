@@ -1,0 +1,71 @@
+********************************************
+*                                          *
+*             TOSSIM Script                *
+*                                          *
+********************************************
+Initializing mac....
+Initializing radio channels....
+    using topology file: topology.txt
+    using noise file: meyer-heavy.txt
+Initializing simulator....
+Activate debug message on channel init
+Activate debug message on channel boot
+Activate debug message on channel radio
+Activate debug message on channel radio_send
+Activate debug message on channel radio_ack
+Activate debug message on channel radio_rec
+Activate debug message on channel radio_pack
+Activate debug message on channel role
+Activate debug message on channel app
+Creating node 1...
+>>>Will boot at time 0 [sec]
+Creating node 2...
+>>>Will boot at time 5 [sec]
+Creating radio channels...
+>>>Setting radio channel from node  1  to node  2  with gain  -60.0  dBm
+>>>Setting radio channel from node  2  to node  1  with gain  -60.0  dBm
+Initializing Closest Pattern Matching (CPM)...
+Reading noise model data file: meyer-heavy.txt
+Loading:##Done!
+>>>Creating noise model for node: 1
+>>>Creating noise model for node: 2
+Start simulation with TOSSIM! 
+
+
+
+DEBUG (1): Application booted 1. 
+DEBUG (1): Radio ON!
+DEBUG (1): Node 1 timer OK
+DEBUG (1): Message sent! -> at time 0:0:0.976562510
+DEBUG (1): Message sent! -> at time 0:0:1.953125010
+DEBUG (1): Message sent! -> at time 0:0:2.929687510
+DEBUG (1): Message sent! -> at time 0:0:3.906250010
+DEBUG (1): Message sent! -> at time 0:0:4.882812510
+DEBUG (2): Application booted 2. 
+DEBUG (2): Radio ON!
+DEBUG (2): Node 2 has been started
+DEBUG (1): Message sent! -> at time 0:0:5.859375010
+DEBUG (2): Received packet at time 0:0:5.868804886
+DEBUG (2): Pack 
+ 	 Payload length -> 5 
+ 	 Counter -> 6 
+ 	 Type -> 1
+DEBUG (2): Preparing response...
+DEBUG (1): ACK correctly received!
+DEBUG (2): Message sent!
+DEBUG (2): Pack
+ 	 Payload length -> 5 
+	 Counter -> 6 
+	 Type -> 2 
+	 Value -> 245 
+DEBUG (1): Received packet at time 0:0:5.883087138
+DEBUG (1): Pack 
+ 	 Payload length -> 5 
+ 	 Counter -> 6 
+ 	 Type -> 2
+	 Value -> 245 
+DEBUG (2): ACK correctly received!
+
+
+
+Simulation finished!
