@@ -30,12 +30,9 @@ implementation {
   App.AMControl -> ActiveMessageC;
   App.MilliTimer -> TimerMilliC;
   App.Packet -> AMSenderC;
-  //Send and Receive interfaces
-  //Radio Control
-  //Interfaces to access package fields
-  //Timer interface
-  //Fake Sensor read
+  App.AMSend -> AMSenderC;
   App.Read -> FakeSensorC;
+  App.PacketAcknowledgements -> AMSenderC.Acks;
 
 }
 

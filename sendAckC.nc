@@ -42,43 +42,7 @@ module sendAckC {
   
   
   //***************** Send request function ********************//
-  void sendReq() {
-    counter++;
-  	my_msg_t* mess = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
-    if (mess == NULL){
-   		return;
-    }
-    	
-    mess->msg_type = 1;
-    mess->msg_counter = counter;
-    mess->value = 0;
-    
-    call PacketAcknowledgements.requestAck(&packet);
-    
-    if (call AMSend.send(2, &packet, sizeof(my_msg_t)) == SUCCESS){
-    	dbg("Radio","Message sent!\n");
-    	locked = TRUE;
-    }
-  	/* This function is called when we want to send a request
-	 *
-	 * STEPS:
-	 * 1. Prepare the msg
-	 * 2. Set the ACK flag for the message using the PacketAcknowledgements interface
-	 *     (read the docs)
-	 * 3. Send an UNICAST message to the correct node
-	 * X. Use debug statements showing what's happening (i.e. message fields)
-	 */
- }        
-
-  //****************** Task send response *****************//
-  void sendResp() {
-  	/* This function is called when we receive the REQ message.
-  	 * Nothing to do here. 
-  	 * `call Read.read()` reads from the fake sensor.
-  	 * When the reading is done it raise the event read one.
-  	 */
-	call Read.read();
-  }
+  
 
   //***************** Boot interface ********************//
   event void Boot.booted() {
@@ -107,6 +71,7 @@ module sendAckC {
 	if (locked) {
       return;
     } else {
+    	counter++;
       sendReq();
     }
 	/* This event is triggered every time the timer fires.
@@ -150,23 +115,16 @@ module sendAckC {
       dbg("radio_rec", "Received packet at time %s\n", sim_time_string());
       dbg("radio_pack","Pack \n \t Payload length %hhu \n", call Packet.payloadLength(buf));
       
-      dbg_clear("radio_pack","\t\t Payload \n" );
-      dbg_clear("radio_pack", "\t\t msg_type: %hhu \n", rcm->msg_type);
-      dbg_clear("radio_pack", "\t\t msg_counter: %hhu \n", rcm->msg_counter);
-      dbg_clear("radio_pack", "\t\t value: %hhu \n", rcm->value);
+      
       if (rcm->msg_type == 1){
       	sendResp();
       } else {
-      	//roba di debug
+      	dbg_clear("radio_pack","\t\t Payload \n" );
+      dbg_clear("radio_pack", "\t\t msg_type: %hhu \n", rcm->msg_type);
+      dbg_clear("radio_pack", "\t\t msg_counter: %hhu \n", rcm->msg_counter);
+      dbg_clear("radio_pack", "\t\t value: %hhu \n", rcm->value);
       }
-	/* This event is triggered when a message is received 
-	 *
-	 * STEPS:
-	 * 1. Read the content of the message
-	 * 2. Check if the type is request (REQ)
-	 * 3. If a request is received, send the response
-	 * X. Use debug statements showing what's happening (i.e. message fields)
-	 */
+	
 	}
   }
   
@@ -183,7 +141,7 @@ module sendAckC {
     
     call PacketAcknowledgements.requestAck(&packet);
     
-    if (call AMSend.send(1, &packet, sizeof(my_msg_t)) == SUCCESS){
+    if (call AMSend.send(0, &packet, sizeof(my_msg_t)) == SUCCESS){
     	dbg("Radio","Message sent!\n");
     	dbg("radio_pack",">>>Pack\n \t Payloaf length %hhu \n", call Packet.payloadLength(&packet));
     	dbg_clear("radio_pack","\t\t type: %hhu \n", mess->msg_type);
@@ -197,5 +155,55 @@ module sendAckC {
 	 * 2. Send back (with a unicast message) the response
 	 * X. Use debug statement showing what's happening (i.e. message fields)
 	 */
+}
+
+void sendReq() {
+  	my_msg_t* msg = (my_msg_t*)(call Packet.getPayload(&packet, sizeof(my_msg_t)));
+    if (msg == NULL) {
+   		return;
+    }
+
+    	
+
+    msg->msg_type = 1;
+
+    msg->msg_counter = counter;
+
+    msg->value = 0;
+
+    
+
+    call PacketAcknowledgements.requestAck(&packet);
+
+    
+
+    if (call AMSend.send(0, &packet, sizeof(my_msg_t)) == SUCCESS){
+
+    	dbg("Radio","Message sent!\n");
+
+    	locked = TRUE;
+
+    }
+
+  	/* This function is called when we want to send a request
+	 *
+	 * STEPS:
+	 * 1. Prepare the msg
+	 * 2. Set the ACK flag for the message using the PacketAcknowledgements interface
+	 *     (read the docs)
+	 * 3. Send an UNICAST message to the correct node
+	 * X. Use debug statements showing what's happening (i.e. message fields)
+	 */
+ }        
+
+  //****************** Task send response *****************//
+  void sendResp() {
+  	/* This function is called when we receive the REQ message.
+  	 * Nothing to do here. 
+  	 * `call Read.read()` reads from the fake sensor.
+  	 * When the reading is done it raise the event read one.
+  	 */
+	call Read.read();
+  }
 }
 
